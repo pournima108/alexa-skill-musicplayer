@@ -30,12 +30,12 @@ app.post('/webhook', function(req, res){
                 "response": {
                     "outputSpeech": {
                         "type": "PlainText",
-                        "text": "Welcome to Shubham's Stormy weather assistant! Please say a command."
+                        "text": "This is Pournima's musicplayer."
                     },
                     "card": {
                         "type": "Standard",
                         "title": "Welcome",
-                        "text": "Welcome to stormy weather assistant",
+                        "text": "Welcome to pournima's music player",
                         "image": {
                             "smallImageUrl": "https://i.imgur.com/YlKp2nd.jpg",
                             "largeImageUrl": "https://i.imgur.com/YlKp2nd.jpg"
@@ -53,7 +53,7 @@ app.post('/webhook', function(req, res){
         } else if(jsonData.request.type == "IntentRequest") {
             var outputSpeechText = "";
             var cardContent = "";
-            if (jsonData.request.intent.name == "WeatherIntent") {
+            if (jsonData.request.intent.name == "Playlist") {
                 //response modified
                 // The Intent "TurnOn" was successfully called
                 responseBody = {
@@ -65,11 +65,10 @@ app.post('/webhook', function(req, res){
                     "sessionAttributes": {},
                     "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
                 }
-            } else if (jsonData.request.intent.name == "cityIntent") {
-                if (typeof jsonData.request.intent.slots.cityName.value != "undefined") {
-                    var city = jsonData.request.intent.slots.cityName.value;
+            } else if (jsonData.request.intent.name == "songs") {
+                if (typeof jsonData.request.intent.slots.songs.score != "undefined") {
+                    var city = jsonData.request.intent.slots.songs.score;
                     if (jsonData.request.dialogState == "STARTED") {
-                        //var outputSpeechText = "humidity is " + response.body.main.humidity + " with " + response.body.weather[0].description + ".";
                         responseBody = {
                             "version": "1.0",
                             "response": {
@@ -77,12 +76,12 @@ app.post('/webhook', function(req, res){
                                     {
                                         "type": "Dialog.Delegate",
                                         "updatedIntent": {
-                                            "name": "cityIntent",
+                                            "name": "Playlist",
                                             "confirmationStatus": "NONE",
                                             "slots": {
-                                                "cityName": {
-                                                    "name": "cityName",
-                                                    "value": city,
+                                                "songs": {
+                                                    "name": "songs",
+                                                    "value": song,
                                                     "confirmationStatus": "NONE"
                                                 }
                                             }
@@ -92,7 +91,7 @@ app.post('/webhook', function(req, res){
                                 "shouldEndSession": false
                             }
                         };
-                    } else if (jsonData.request.dialogState == "IN_PROGRESS" && jsonData.request.intent.slots.cityName.confirmationStatus == "CONFIRMED") {
+                    } else if (jsonData.request.dialogState == "IN_PROGRESS" && jsonData.request.intent.slots.songs.confirmationStatus == "CONFIRMED") {
                         let response = deasync(function(callback){
                             weather.cityWeather(city, callback);
                         })();
@@ -116,12 +115,12 @@ app.post('/webhook', function(req, res){
                                     {
                                         "type": "Dialog.Delegate",
                                         "updatedIntent": {
-                                            "name": "cityIntent",
+                                            "name": "Playlist",
                                             "confirmationStatus": "NONE",
                                             "slots": {
                                                 "cityName": {
-                                                    "name": "cityName",
-                                                    "value": city2,
+                                                    "name": "songs",
+                                                    "value": song2,
                                                     "confirmationStatus": "DENIED"
                                                 }
                                             }
@@ -155,11 +154,11 @@ app.post('/webhook', function(req, res){
                             {
                                 "type": "Dialog.Delegate",
                                 "updatedIntent": {
-                                    "name": "cityIntent",
+                                    "name": "Playlist",
                                     "confirmationStatus": "NONE",
                                     "slots": {
                                         "cityName": {
-                                            "name": "cityName",
+                                            "name": "Playlist",
                                             "confirmationStatus": "NONE"
                                         }
                                     }
@@ -175,7 +174,7 @@ app.post('/webhook', function(req, res){
                     "version": '1.0',
                     "response": {
                         "shouldEndSession": true,
-                        "outputSpeech": { "type": 'SSML', "ssml": '<speak>Thanks for using our weather assistant. Goodbye!</speak>' } 
+                        "outputSpeech": { "type": 'SSML', "ssml": '<speak>Goodbye!</speak>' } 
                     },
                     "sessionAttributes": {},
                     "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
