@@ -1,45 +1,36 @@
 var express = require('express')
 , app = express()
 , server = require('http').createServer(app)
-, deasync = require('deasync')
-, music = require('./api/musicApi.js')
 , port = process.env.PORT || 3000
+,Alexa = require('alexa-sdk')
 , request = require('request');
 
 // Creates the website server on the port #
 
 // Handles the route for echo apis
 app.post('/webhook', function(req, res){
-  var requestBody = "";
-
-  // Will accumulate the data
-  req.on('data', function(data){
-    requestBody+=data;
-  });
-
-  // Called when all data has been accumulated
-    req.on('end', function()  {
+    var requestBody = "";
+    req.on('data', function(data){
+        requestBody+= data;
+      });
+    
+      req.on('end', function()  {
         var responseBody = {};
-
-        // parsing the requestBody for information
-        var jsonData = JSON.parse(requestBody);
-        if(jsonData.request.type == "LaunchRequest") {
-        // crafting a response
+       var jsonData = JSON.parse(requestBody); 
+      if(jsonData.request.type == "LaunchRequest") {
+        // sending a response
             responseBody = {
                 "version": "0.1",
                 "response": {
                     "outputSpeech": {
                         "type": "PlainText",
-                        "text": "This is Pournima's musicplayer."
+                        "text": 'Welcome to  Calculator app . You can ask a question like, what\'s the' +
+                        ' summation of 5 and 3? ... Now, what can I help you with.',
                     },
                     "card": {
                         "type": "Standard",
                         "title": "Welcome",
-                        "text": "Welcome to pournima's music player",
-                        "image": {
-                            "smallImageUrl": "https://i.imgur.com/YlKp2nd.jpg",
-                            "largeImageUrl": "https://i.imgur.com/YlKp2nd.jpg"
-                        }
+                        "text": "Welcome to Calculator app",
                     },
                     "reprompt": {
                         "outputSpeech": {
@@ -50,142 +41,161 @@ app.post('/webhook', function(req, res){
                     "shouldEndSession": false
                 }
             };
-        } else if(jsonData.request.type == "IntentRequest") {
-            var outputSpeechText = "";
-            var cardContent = "";
-            if (jsonData.request.intent.name == "Playlist") {
-                //response modified
-                // The Intent "TurnOn" was successfully called
-                responseBody = {
-                    "version": '1.0',
-                    "response": {
-                        "shouldEndSession": true,
-                        "outputSpeech": { "type": 'SSML', "ssml": '<speak> Hello from node JS </speak>' } 
-                    },
-                    "sessionAttributes": {},
-                    "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
-                }
-            } else if (jsonData.request.intent.name == "songs") {
-                if (typeof jsonData.request.intent.slots.songs.score != "undefined") {
-                    var city = jsonData.request.intent.slots.songs.score;
-                    if (jsonData.request.dialogState == "STARTED") {
-                        responseBody = {
-                            "version": "1.0",
-                            "response": {
-                                "directives": [
-                                    {
-                                        "type": "Dialog.Delegate",
-                                        "updatedIntent": {
-                                            "name": "Playlist",
-                                            "confirmationStatus": "NONE",
-                                            "slots": {
-                                                "songs": {
-                                                    "name": "songs",
-                                                    "value": song,
-                                                    "confirmationStatus": "NONE"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ],
-                                "shouldEndSession": false
-                            }
-                        };
-                    } else if (jsonData.request.dialogState == "IN_PROGRESS" && jsonData.request.intent.slots.songs.confirmationStatus == "CONFIRMED") {
-                        let response = deasync(function(callback){
-                            weather.cityWeather(city, callback);
-                        })();
-
-                        var outputSpeechText = "Right now in " + city +", humidity is " + response.body.main.humidity + " with " + response.body.weather[0].description + ".";
-                        responseBody = {
-                            "version": '1.0',
-                            "response": {
-                                "shouldEndSession": true,
-                                "outputSpeech": { "type": 'SSML', "ssml": '<speak>' + outputSpeechText + '</speak>' } 
-                            },
-                            "sessionAttributes": {},
-                            "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
-                        };
-                    } else if (jsonData.request.dialogState == "IN_PROGRESS" && jsonData.request.intent.slots.cityName.confirmationStatus == "DENIED") {
-                        var city2 = jsonData.request.intent.slots.cityName.value;
-                        responseBody = {
-                            "version": "1.0",
-                            "response": {
-                                "directives": [
-                                    {
-                                        "type": "Dialog.Delegate",
-                                        "updatedIntent": {
-                                            "name": "Playlist",
-                                            "confirmationStatus": "NONE",
-                                            "slots": {
-                                                "cityName": {
-                                                    "name": "songs",
-                                                    "value": song2,
-                                                    "confirmationStatus": "DENIED"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ],
-                                "shouldEndSession": false
-                            }
-                        };
-                    } else if (jsonData.request.dialogState == "IN_PROGRESS") {
-                        let response = deasync(function(callback){
-                            weather.cityWeather(city, callback);
-                        })();
-
-                        var outputSpeechText = "Right now in " + city +", humidity is " + response.body.main.humidity + " with " + response.body.weather[0].description + ".";
-                        responseBody = {
-                            "version": '1.0',
-                            "response": {
-                                "shouldEndSession": true,
-                                "outputSpeech": { "type": 'SSML', "ssml": '<speak>' + outputSpeechText + '</speak>' } 
-                            },
-                            "sessionAttributes": {},
-                            "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
-                        };
+        }
+        else if(jsonData.request.type == "IntentRequest") {
+            if (jsonData.request.intent.name == "AddIntent") {
+                var numberOneSlot = jsonData.request.intent.slots.NumberOne;
+		        var numberTwoSlot = jsonData.request.intent.slots.NumberTwo;
+                var numberOne;
+                var numberTwo;
+                    if (numberOneSlot && numberOneSlot.value) {
+                    console.log(numberOneSlot.value);
+                    numberOne = parseInt(numberOneSlot.value, 10);
+                    console.log(numberOne)
+                    } 
+                    if (numberTwoSlot && numberTwoSlot.value) {
+                    console.log(numberTwoSlot.value);
+                    numberTwo = parseInt(numberTwoSlot.value, 10);
+                    console.log(numberTwo)
                     }
-                } else {
+                var cardTitle = 'ADDITION';
+		        var speechOutput;
+		            if(numberOne == undefined || numberTwo == undefined){
+                    speechOutputText = 'need two numbers to add, please try again';
+                    console.log(speechOutputText)
+		            } else {
+                        speechOutputText = 'the summation of ' + numberOne + ' and ' + numberTwo + ' is ' + (numberOne + numberTwo);
+                    console.log(speechOutputText)
+		            }
                     responseBody = {
-                        "version": "1.0",
-                        "response": {
-                        "directives": [
-                            {
-                                "type": "Dialog.Delegate",
-                                "updatedIntent": {
-                                    "name": "Playlist",
-                                    "confirmationStatus": "NONE",
-                                    "slots": {
-                                        "cityName": {
-                                            "name": "Playlist",
-                                            "confirmationStatus": "NONE"
-                                        }
-                                    }
-                                }
-                            }
-                        ],
-                        "shouldEndSession": false
-                        }
-                    };
-                }
-            } else if (jsonData.request.intent.name == "satisfactoryIntent") {
-                responseBody = {
                     "version": '1.0',
                     "response": {
-                        "shouldEndSession": true,
-                        "outputSpeech": { "type": 'SSML', "ssml": '<speak>Goodbye!</speak>' } 
+                        "shouldEndSession": false,
+                        "outputSpeech": { "type": 'SSML', "ssml": '<speak>' + speechOutputText+ '</speak>' } 
                     },
+                    "card": {
+                        "type": "Standard",
+                        "title": "Addition",
+                        "text": "Welcome to Calculator app",
+                    },
+                    "reprompt": {
+                        "outputSpeech": {
+                            "type": "PlainText",
+                            "text": "Say a command"
+                        },
                     "sessionAttributes": {},
                     "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
-                };
-            }
+                    }
+                    }
+                }
+                else if(jsonData.request.intent.name == "SubIntent"){
+                    var numberOneSlot = jsonData.request.intent.slots.NumberOne;
+		            var numberTwoSlot = jsonData.request.intent.slots.NumberTwo;
+                    var numberOne;
+                    var numberTwo;
+                    if (numberOneSlot && numberOneSlot.value) {
+                    console.log(numberOneSlot.value);
+                    numberOne = parseInt(numberOneSlot.value, 10);
+                    console.log(numberOne)
+                    } 
+                    if (numberTwoSlot && numberTwoSlot.value) {
+                    console.log(numberTwoSlot.value);
+                    numberTwo = parseInt(numberTwoSlot.value, 10);
+                    console.log(numberTwo)
+                    }
+                    var cardTitle = 'SUBTRACTION';
+                    var speechOutput;
+                    if(numberOne == undefined || numberTwo == undefined){
+                        speechOutputText = 'need two numbers to subtract, please try again';
+                        console.log(speechOutputText)
+                    } else {
+                        speechOutputText = 'the subtraction of ' + numberOne + ' and ' + numberTwo + ' is ' + (numberOne - numberTwo);
+                        console.log(speechOutputText)
+                    }
+                    responseBody = {
+                        "version": '1.0',
+                        "response": {
+                            "shouldEndSession": false,
+                            "outputSpeech": { "type": 'SSML', "ssml": '<speak>' + speechOutputText+ '</speak>' } 
+                        },
+                        "card": {
+                            "type": "Standard",
+                            "title": "Subtraction",
+                            "text": "Welcome to Calculator app",
+                        },
+                        "reprompt": {
+                            "outputSpeech": {
+                                "type": "PlainText",
+                                "text": "Say a command"
+                            },
+                        "sessionAttributes": {},
+                        "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
+                        }
+                        }
+                }
+                else if (jsonData.request.intent.name == "MulIntent") {
+                    var numberOneSlot = jsonData.request.intent.slots.NumberOne;
+		            var numberTwoSlot = jsonData.request.intent.slots.NumberTwo;
+                    var numberOne;
+                    var numberTwo;
+                    if (numberOneSlot && numberOneSlot.value) {
+                    console.log(numberOneSlot.value);
+                    numberOne = parseInt(numberOneSlot.value, 10);
+                    console.log(numberOne)
+                    } 
+                    if (numberTwoSlot && numberTwoSlot.value) {
+                    console.log(numberTwoSlot.value);
+                    numberTwo = parseInt(numberTwoSlot.value, 10);
+                    console.log(numberTwo)
+                    }
+                    var cardTitle = 'MULTIPLICATION';
+                    var speechOutput;
+                    if(numberOne == undefined || numberTwo == undefined){
+                        speechOutputText = 'need two numbers to multiply, please try again';
+                        console.log(speechOutputText)
+                    } else {
+                        speechOutputText = 'the multiplication of ' + numberOne + ' and ' + numberTwo + ' is ' + (numberOne * numberTwo);
+                        console.log(speechOutputText)
+                    }
+                    responseBody = {
+                        "version": '1.0',
+                        "response": {
+                            "shouldEndSession": false,
+                            "outputSpeech": { "type": 'SSML', "ssml": '<speak>' + speechOutputText+ '</speak>' } 
+                        },
+                        "card": {
+                            "type": "Standard",
+                            "title": "Multiplication",
+                            "text": "Welcome to Calculator app",
+                        },
+                        "reprompt": {
+                            "outputSpeech": {
+                                "type": "PlainText",
+                                "text": "Say a command"
+                            },
+                        "sessionAttributes": {},
+                        "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
+                        }
+                        }
+                }
+                }
+                else if (jsonData.request.intent.name == "satisfactoryIntent") {
+                responseBody = {
+                "version": '1.0',
+                "response": {
+                    "shouldEndSession": true,
+                    "outputSpeech": { "type": 'SSML', "ssml": '<speak> Goodbye!</speak>' } 
+                },
+                "sessionAttributes": {},
+                "userAgent": 'ask-nodejs/1.0.25 Node/v6.10.0'
+            };
         }
         res.statusCode = 200;
         res.contentType('application/json');
         res.send(responseBody);
     });
-});
+
+    });
         // parsing the requestBody for information
 
 
